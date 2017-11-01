@@ -5,7 +5,7 @@ data in a format suitable for plotting.
 
 import numpy as np
 
-from .dnmrmath import dnmr_AB, d2s_func  # , TwoSinglets
+from dnmrmath import dnmr_AB, d2s_func  # , TwoSinglets
 
 # TODO: dnmrplot prefix is redundant. Consider refactor.
 

@@ -5,6 +5,7 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import numpy as np
 
+from dnmrplot import dnmrplot_2spin
 from testdata import TWOSPIN_SLOW
 
 entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
@@ -69,12 +70,22 @@ app.layout = html.Div([
              })
 ])
 
+
 @app.callback(
     Output(component_id='selected-data', component_property='children'),
     [Input(component_id=key, component_property='value') for key in entry_names]
 )
 def update_output_div(*input_values):
-    return 'You\'ve entered "{}"'.format(input_values)
+
+    # Currently, even when Input type='number', value is a string.
+    # A forum discussion indicated this may change at some point
+    variables = (float(i) for i in input_values)
+    x, y = dnmrplot_2spin(*variables)
+    line1 = 'You\'ve entered "{}"\n'.format(input_values)
+    line2 = 'x = {}...\n'.format(x[:10])
+    line3 = 'y = {}...'.format(y[:10])
+    return line1 + line2 + line3
+    # return line2
 
 if __name__ == '__main__':
     app.run_server()
