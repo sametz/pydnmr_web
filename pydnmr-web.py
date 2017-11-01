@@ -1,6 +1,7 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import numpy as np
 
@@ -27,6 +28,7 @@ app.layout = html.Div([
             html.Label(key),
 
             dcc.Input(
+                id=key,
                 type='number',
                 name=key,
                 value=entry_dict[key])],
@@ -58,9 +60,21 @@ app.layout = html.Div([
                 legend={'x': 0, 'y': 1},
                 hovermode='closest')
         }
-    )
+    ),
+
+    html.Pre(id='selected-data',
+             style={
+                'border': 'thin lightgrey solid',
+                'overflowX': 'scroll'
+             })
 ])
 
+@app.callback(
+    Output(component_id='selected-data', component_property='children'),
+    [Input(component_id=key, component_property='value') for key in entry_names]
+)
+def update_output_div(*input_values):
+    return 'You\'ve entered "{}"'.format(input_values)
 
 if __name__ == '__main__':
     app.run_server()
