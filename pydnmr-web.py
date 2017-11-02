@@ -9,12 +9,23 @@ from dnmrplot import dnmrplot_2spin
 from testdata import TWOSPIN_SLOW
 
 entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
-entry_dict = {'va': 165,
-              'vb': 135,
-              'ka': 1.5,
-              'wa': 0.5,
-              'wb': 0.5,
-              'pa': 50}
+entry_dict = {
+    'va': {'value': 165},
+    'vb': {'value': 135},
+    'ka': {
+        'value': 1.5,
+        'min': 0.01},
+    'wa': {
+        'value': 0.5,
+        'min': 0.01},
+    'wb': {
+        'value': 0.5,
+        'min': 0.01},
+    'pa': {
+        'value': 50,
+        'min': 0,
+        'max': 100}
+}
 
 app = dash.Dash()
 
@@ -32,7 +43,7 @@ app.layout = html.Div([
                 id=key,
                 type='number',
                 name=key,
-                value=entry_dict[key])],
+                **entry_dict[key])],
             style={'display': 'inline-block', 'textAlign': 'center'})
         for key in entry_names]
     ),
