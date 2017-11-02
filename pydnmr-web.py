@@ -37,32 +37,9 @@ app.layout = html.Div([
         for key in entry_names]
     ),
 
-    dcc.Graph(
-        id='test-dnmr-plot',
-        figure={
-            # IMPORTANT: despite what some online examples show, apparently
-            # 'data' must be a list, even if only one element. Otherwise, if []
-            # omitted, it won't plot.
-            'data': [go.Scatter(
-                x=TWOSPIN_SLOW[0],
-                y=TWOSPIN_SLOW[1],
-                text='banana',
-                mode='lines',
-                opacity=0.7,
-                line={'color': 'blue',
-                      'width': 1},
-                name='test'
-            )],
-            'layout': go.Layout(
-                xaxis={'title': 'frequency',
-                       'autorange': 'reversed'},
-                yaxis={'title': 'intensity'},
-                margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-                legend={'x': 0, 'y': 1},
-                hovermode='closest')
-        }
-    ),
+    dcc.Graph(id='test-dnmr-plot'),  # figure added by callback
 
+    # retainin Pre for debugging purposes
     html.Pre(id='selected-data',
              style={
                 'border': 'thin lightgrey solid',
@@ -72,9 +49,40 @@ app.layout = html.Div([
 
 
 @app.callback(
-    Output(component_id='selected-data', component_property='children'),
+    Output(component_id='test-dnmr-plot', component_property='figure'),
     [Input(component_id=key, component_property='value') for key in entry_names]
 )
+def update_graph(*input_values):
+    # Currently, even when Input type='number', value is a string.
+    # A forum discussion indicated this may change at some point
+    variables = (float(i) for i in input_values)
+    x, y = dnmrplot_2spin(*variables)
+
+    return {
+        # IMPORTANT: despite what some online examples show, apparently
+        # 'data' must be a list, even if only one element. Otherwise, if []
+        # omitted, it won't plot.
+        'data': [go.Scatter(
+            x=x,
+            y=y,
+            text='banana',
+            mode='lines',
+            opacity=0.7,
+            line={'color': 'blue',
+                  'width': 1},
+            name='test'
+        )],
+        'layout': go.Layout(
+            xaxis={'title': 'frequency',
+                   'autorange': 'reversed'},
+            yaxis={'title': 'intensity'},
+            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
+            legend={'x': 0, 'y': 1},
+            hovermode='closest')
+    }
+
+
+# retaining function below temporarily for debugging purposes
 def update_output_div(*input_values):
 
     # Currently, even when Input type='number', value is a string.
@@ -85,7 +93,7 @@ def update_output_div(*input_values):
     line2 = 'x = {}...\n'.format(x[:10])
     line3 = 'y = {}...'.format(y[:10])
     return line1 + line2 + line3
-    # return line2
+
 
 if __name__ == '__main__':
     app.run_server()
