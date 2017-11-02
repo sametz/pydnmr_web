@@ -13,52 +13,23 @@ import plotly.graph_objs as go
 import numpy as np
 
 from dnmrplot import dnmrplot_2spin
-from toolbars import dnmr_two_singlets
+from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
+from models_dash import BaseDashModel
 
-# list order reflects left-->right order of widgets in top toolbar
-entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
-
-# each Input widget has the following custom kwargs:
-entry_dict = {
-    'va': {'value': 165},
-    'vb': {'value': 135},
-    'ka': {
-        'value': 1.5,
-        'min': 0.01},
-    'wa': {
-        'value': 0.5,
-        'min': 0.01},
-    'wb': {
-        'value': 0.5,
-        'min': 0.01},
-    'pa': {
-        'value': 50,
-        'min': 0,
-        'max': 100}
-}
 
 app = dash.Dash()
-
 # Demos on the plot.ly Dash site use secret-sauce css:
 app.css.append_css(
     {'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
+dnmr_two_singlets = BaseDashModel(**dnmr_two_singlets_kwargs)
+dnmr_AB = BaseDashModel(**dnmr_AB_kwargs)
+active_model = dnmr_AB  # choose one of two models above
+
 app.layout = html.Div([
 
     # top toolbar: list of Label/Input paired widgets
-    html.Div(id='top-toolbar', children=dnmr_two_singlets
-    # [
-    #     html.Div([
-    #         html.Label(key),
-    #
-    #         dcc.Input(
-    #             id=key,
-    #             type='number',
-    #             name=key,
-    #             **entry_dict[key])],
-    #         style={'display': 'inline-block', 'textAlign': 'center'})
-    #     for key in entry_names]
-    ),
+    html.Div(id='top-toolbar', children=active_model.toolbar),
 
     # The plot
     dcc.Graph(id='test-dnmr-plot'),  # figure added by callback
@@ -74,7 +45,8 @@ app.layout = html.Div([
 
 @app.callback(
     Output(component_id='test-dnmr-plot', component_property='figure'),
-    [Input(component_id=key, component_property='value') for key in entry_names]
+    [Input(component_id=key, component_property='value')
+     for key in active_model.entry_names]
 )
 def update_graph(*input_values):
     """Update the figure of the Graph whenever an Input value is changed.
@@ -85,30 +57,8 @@ def update_graph(*input_values):
     # Currently, even when Input type='number', value is a string.
     # A forum discussion indicated this may change at some point
     variables = (float(i) for i in input_values)
-    x, y = dnmrplot_2spin(*variables)
 
-    return {
-        # IMPORTANT: despite what some online examples show, apparently
-        # 'data' must be a list, even if only one element. Otherwise, if []
-        # omitted, it won't plot.
-        'data': [go.Scatter(
-            x=x,
-            y=y,
-            text='banana',
-            mode='lines',
-            opacity=0.7,
-            line={'color': 'blue',
-                  'width': 1},
-            name='test'
-        )],
-        'layout': go.Layout(
-            xaxis={'title': 'frequency',
-                   'autorange': 'reversed'},
-            yaxis={'title': 'intensity'},
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-            legend={'x': 0, 'y': 1},
-            hovermode='closest')
-    }
+    return active_model.update_graph(*variables)
 
 
 # retaining function below temporarily for debugging purposes
