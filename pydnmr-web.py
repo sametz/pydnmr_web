@@ -13,6 +13,7 @@ import plotly.graph_objs as go
 import numpy as np
 
 from dnmrplot import dnmrplot_2spin
+from toolbars import dnmr_two_singlets
 
 # list order reflects left-->right order of widgets in top toolbar
 entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
@@ -45,17 +46,18 @@ app.css.append_css(
 app.layout = html.Div([
 
     # top toolbar: list of Label/Input paired widgets
-    html.Div([
-        html.Div([
-            html.Label(key),
-
-            dcc.Input(
-                id=key,
-                type='number',
-                name=key,
-                **entry_dict[key])],
-            style={'display': 'inline-block', 'textAlign': 'center'})
-        for key in entry_names]
+    html.Div(id='top-toolbar', children=dnmr_two_singlets
+    # [
+    #     html.Div([
+    #         html.Label(key),
+    #
+    #         dcc.Input(
+    #             id=key,
+    #             type='number',
+    #             name=key,
+    #             **entry_dict[key])],
+    #         style={'display': 'inline-block', 'textAlign': 'center'})
+    #     for key in entry_names]
     ),
 
     # The plot
