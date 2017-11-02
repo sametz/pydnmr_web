@@ -1,3 +1,10 @@
+"""The main script of the pydnmr_web app.
+
+Currently only provides the model for two uncoupled spins.
+
+TODO: Add the model for two coupled spins.
+"""
+
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
@@ -6,9 +13,11 @@ import plotly.graph_objs as go
 import numpy as np
 
 from dnmrplot import dnmrplot_2spin
-from testdata import TWOSPIN_SLOW
 
+# list order reflects left-->right order of widgets in top toolbar
 entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
+
+# each Input widget has the following custom kwargs:
 entry_dict = {
     'va': {'value': 165},
     'vb': {'value': 135},
@@ -35,6 +44,7 @@ app.css.append_css(
 
 app.layout = html.Div([
 
+    # top toolbar: list of Label/Input paired widgets
     html.Div([
         html.Div([
             html.Label(key),
@@ -48,9 +58,10 @@ app.layout = html.Div([
         for key in entry_names]
     ),
 
+    # The plot
     dcc.Graph(id='test-dnmr-plot'),  # figure added by callback
 
-    # retainin Pre for debugging purposes
+    # retaining Pre for debugging purposes
     html.Pre(id='selected-data',
              style={
                 'border': 'thin lightgrey solid',
@@ -64,6 +75,11 @@ app.layout = html.Div([
     [Input(component_id=key, component_property='value') for key in entry_names]
 )
 def update_graph(*input_values):
+    """Update the figure of the Graph whenever an Input value is changed.
+
+    :param input_values: (str,) the values of the Input widgets.
+    :return: (dict) the kwargs for the Graph's figure.
+    """
     # Currently, even when Input type='number', value is a string.
     # A forum discussion indicated this may change at some point
     variables = (float(i) for i in input_values)
