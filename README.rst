@@ -1,5 +1,7 @@
-pyDNMR-Web
-**********
+pyDNMR-Web v0.1.0 (pre-alpha)
+*****************************
+
+.. image:: docs/source/pydnmr_web_screenshot.png
 
 A port of pyDNMR to a web application, using Dash by plot.ly.
 
