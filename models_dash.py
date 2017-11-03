@@ -6,10 +6,8 @@ the plot associated with the model.
  """
 import dash_core_components as dcc
 import dash_html_components as html
-from dash.dependencies import Input, Output
-
 import plotly.graph_objs as go
-import json
+from dash.dependencies import Input, Output
 
 
 class BaseDashModel:
@@ -107,8 +105,6 @@ class BaseDashModel:
 if __name__ == '__main__':
     # BROKEN
     import dash
-    from dash.dependencies import State
-    import numpy as np
     from model_definitions import dnmr_two_singlets_kwargs
 
     app = dash.Dash()
@@ -120,31 +116,17 @@ if __name__ == '__main__':
     # dnmr_AB = BaseDashModel(**dnmr_AB_kwargs)
     # active_model = dnmr_two_singlets  # choose one of two models above
 
-    app.layout = html.Div([
-
-        # top toolbar: list of Label/Input paired widgets
-        html.Div(id='top-toolbar', children=dnmr_two_singlets.toolbar),
-
-        # The plot
-        dcc.Graph(id='test-dnmr-plot')  # figure added by callback
-    ])
+    app.layout = html.Div(dnmr_two_singlets.layout)
 
 
-    @app.callback(
-        Output(component_id='test-dnmr-plot', component_property='figure'),
-        [Input(component_id=key, component_property='value')
-         for key in dnmr_two_singlets.entry_names]
-    )
-    def update_graph(*input_values):
-        """Update the figure of the Graph whenever an Input value is changed.
+    @app.callback(dnmr_two_singlets.output, dnmr_two_singlets.inputs)
+    def update_dnmr_two_singlets(*string_values):
+        """Update the figure for the dnmr_two_singlets Graph.
 
-        :param input_values: (str,) the values of the Input widgets.
-        :return: (dict) the kwargs for the Graph's figure.
+        :param string_values: (str...)
+        :return: {**kwargs} for the Graph figure
         """
-        # Currently, even when Input type='number', value is a string.
-        # A forum discussion indicated this may change at some point
-        variables = (float(i) for i in input_values)
-
-        return dnmr_two_singlets.update_graph(*variables)
+        values = (float(i) for i in string_values)
+        return dnmr_two_singlets.update_graph(*values)
 
     app.run_server()

@@ -5,12 +5,9 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import numpy as np
-import plotly.graph_objs as go
 
 from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
 from models_dash import BaseDashModel
-
 
 app = dash.Dash()
 # Demos on the plot.ly Dash site use secret-sauce css:
