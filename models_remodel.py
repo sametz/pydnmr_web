@@ -5,19 +5,50 @@
  """
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
+
 import plotly.graph_objs as go
 import json
 
 
 class BaseDashModel:
-    def __init__(self, name, id, model, entry_names, entry_dict):
+    def __init__(self, name, id_, model, entry_names, entry_dict):
         self.name = name
-        self.id = id
+        self.id = id_
         self.model = model
         self.entry_names = entry_names
         self.entry_dict = entry_dict
 
         self._make_toolbar()
+
+        self.layout = html.Div([
+
+            # top toolbar: list of Label/Input paired widgets
+            html.Div(id='{}-top-toolbar'.format(self.id),
+                     children=self.toolbar),
+
+            # The plot
+            dcc.Graph(id='{}-graph'.format(self.id)),
+
+            # retaining a pair of Pre for now in case of json dumps
+            html.Pre(id='{}-current-model'.format(self.id),
+                     children=self.name,
+                     style={
+                         'border': 'thin lightgrey solid',
+                         'overflowX': 'scroll'
+                     }),
+
+            html.Pre(id='{}-variables'.format(self.id),
+                     children='placeholder',
+                     style={
+                         'border': 'thin lightgrey solid',
+                         'overflowX': 'scroll'
+                     })
+        ])
+
+        self.output = Output('{}-graph'.format(self.id), 'figure')
+        self.inputs = [Input('{}-{}'.format(self.id, entry), 'value')
+                       for entry in self.entry_names]
 
     def _make_toolbar(self):
         print('entered _make_toolbar for ', self.name)
@@ -70,7 +101,7 @@ class BaseDashModel:
 
 if __name__ == '__main__':
     import dash
-    from dash.dependencies import Input, Output, State
+    from dash.dependencies import State
     import numpy as np
     from model_definitions_remodel import dnmr_two_singlets_kwargs
 
