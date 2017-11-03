@@ -10,6 +10,7 @@ from dnmrplot import dnmrplot_2spin, dnmrplot_AB
 
 dnmr_two_singlets_kwargs = {
     'name': 'dnmr-two-singlets',
+    'id_': 'dnmr-2s',
     'model': dnmrplot_2spin,
     # list order reflects left-->right order of widgets in top toolbar
     'entry_names': ['va', 'vb', 'ka', 'wa', 'wb', 'pa'],
@@ -35,6 +36,7 @@ dnmr_two_singlets_kwargs = {
 
 dnmr_AB_kwargs = {
     'name': 'dnmr-AB',
+    'id_': 'dnmr-AB',
     'model': dnmrplot_AB,
     # list order reflects left-->right order of widgets in top toolbar
     'entry_names': ['va', 'vb', 'J', 'k', 'w'],

@@ -1,30 +1,72 @@
-"""Concept: each different model's GUI behavior will be contained in a Class.
- The class will have:
- - attributes for the values passed to the model,
- - a method that calls the model and creates a figure for the Graph.
+"""Abstracts a Dash NMR model as a class.
+
+Provides the following class:
+*BaseDashModel: creates the layout for a model, and has a method for updating
+the plot associated with the model.
  """
 import dash_core_components as dcc
 import dash_html_components as html
+from dash.dependencies import Input, Output
+
 import plotly.graph_objs as go
 import json
 
 
 class BaseDashModel:
-    def __init__(self, name, model, entry_names, entry_dict):
+    """Provides calls to the Model for simulation calculations, and the Dash
+    layout and routines for creating and updating the GUIl
+
+    Has the following attributes:
+    * name: (str) a descriptive name for the model.
+    * id: (str) an identifier; also used as a prefix for creating the unique
+    component names required for callbacks.
+    * model: (function) a reference to the function used to calculate the
+    lineshape.
+    * entry_names: ([str...]) the names for the Input widgets, listed in left
+    to right order.
+    * entry_dict: ({str: {**kwargs}}) dict that matches entry name to kwargs
+    for Input instantiation.
+    * layout: (html.Div) the layout for the model simulation to be added to
+    the Dash app.
+    * output: (Output) the Output object to be used in Dash callbacks,
+    providing the destination for the .update_graph() figure.
+    * inputs: ([Input...]) the list of Input objects to be used in Dash
+    callbacks.
+    """
+    def __init__(self, name, id_, model, entry_names, entry_dict):
         self.name = name
+        self.id = id_
         self.model = model
         self.entry_names = entry_names
         self.entry_dict = entry_dict
 
         self._make_toolbar()
 
+        self.layout = html.Div([
+
+            # top toolbar: list of Label/Input paired widgets
+            html.Div(id='{}-top-toolbar'.format(self.id),
+                     children=self.toolbar),
+
+            # The plot
+            dcc.Graph(id='{}-graph'.format(self.id))
+        ])
+
+        self.output = Output('{}-graph'.format(self.id), 'figure')
+        self.inputs = [Input('{}-{}'.format(self.id, entry), 'value')
+                       for entry in self.entry_names]
+
     def _make_toolbar(self):
+        """Create the list of (html.Label, dcc.Input) objects that comprise
+        the model's toolbar.
+
+        :return: ([html.Div...])"""
         self.toolbar = [
             html.Div([
                 html.Label(key),
 
                 dcc.Input(
-                    id=key,
+                    id=self.id + '-' + key,
                     type='number',
                     name=key,
                     **self.entry_dict[key])],
@@ -32,13 +74,11 @@ class BaseDashModel:
             for key in self.entry_names]
 
     def update_graph(self, *input_values):
-        """Update the figure of the Graph whenever an Input value is changed.
+        """Update the figure of the Graph.
 
-        :param input_values: (float,) the float(values) of the Input widgets.
+        :param input_values: (float,)
         :return: (dict) the kwargs for the Graph's figure.
         """
-        print('class received input values: ', input_values, ' of type ',
-              type(input_values))
         x, y = self.model(*input_values)
 
         return {
@@ -65,10 +105,11 @@ class BaseDashModel:
 
 
 if __name__ == '__main__':
+    # BROKEN
     import dash
-    from dash.dependencies import Input, Output, State
+    from dash.dependencies import State
     import numpy as np
-    from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
+    from model_definitions import dnmr_two_singlets_kwargs
 
     app = dash.Dash()
     # Demos on the plot.ly Dash site use secret-sauce css:
