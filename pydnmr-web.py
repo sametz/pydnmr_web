@@ -12,7 +12,8 @@ from dash.dependencies import Input, Output
 import plotly.graph_objs as go
 import numpy as np
 
-from dnmrplot import dnmrplot_2spin
+# from dnmrplot import dnmrplot_2spin
+
 from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
 from models_dash import BaseDashModel
 
@@ -24,7 +25,7 @@ app.css.append_css(
 
 dnmr_two_singlets = BaseDashModel(**dnmr_two_singlets_kwargs)
 dnmr_AB = BaseDashModel(**dnmr_AB_kwargs)
-active_model = dnmr_AB  # choose one of two models above
+active_model = dnmr_two_singlets  # choose one of two models above
 
 app.layout = html.Div([
 
