@@ -10,8 +10,9 @@ import json
 
 
 class BaseDashModel:
-    def __init__(self, name, model, entry_names, entry_dict):
+    def __init__(self, name, id, model, entry_names, entry_dict):
         self.name = name
+        self.id = id
         self.model = model
         self.entry_names = entry_names
         self.entry_dict = entry_dict
@@ -19,17 +20,20 @@ class BaseDashModel:
         self._make_toolbar()
 
     def _make_toolbar(self):
+        print('entered _make_toolbar for ', self.name)
         self.toolbar = [
             html.Div([
                 html.Label(key),
 
                 dcc.Input(
-                    id=key,
+                    id=self.id + '-' + key,
                     type='number',
                     name=key,
                     **self.entry_dict[key])],
                 style={'display': 'inline-block', 'textAlign': 'center'})
             for key in self.entry_names]
+        print('from within ', self.name, ': ')
+        print([self.id + '-' + key for key in self.entry_names])
 
     def update_graph(self, *input_values):
         """Update the figure of the Graph whenever an Input value is changed.
@@ -68,7 +72,7 @@ if __name__ == '__main__':
     import dash
     from dash.dependencies import Input, Output, State
     import numpy as np
-    from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
+    from model_definitions_remodel import dnmr_two_singlets_kwargs
 
     app = dash.Dash()
     # Demos on the plot.ly Dash site use secret-sauce css:
