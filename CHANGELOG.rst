@@ -21,6 +21,14 @@ The format is inspired by `Keep a Changelog <http://keepachangelog.com/en/0.3.0/
 * **Version 1.0.0 release**: a minimal app suitable for educational use and not requiring execution from the command line interface.
 
 
+0.2.0 - 2017-11-03
+------------------
+
+Added
+^^^^^
+
+* Both uncoupled and coupled (AB) two-spin simulations are implemented.
+
 0.1.0 - 2017-11-01 (pre-alpha release)
 --------------------------------------
 
