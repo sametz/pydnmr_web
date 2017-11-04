@@ -1,6 +1,4 @@
-"""Refactoring to use urls and multiple page views in order to implement
-multiple models.
-"""
+"""The main application file to be run."""
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
