@@ -1,126 +1,97 @@
-"""The main script of the pydnmr_web app.
-
-Currently only provides the model for two uncoupled spins.
-
-TODO: Add the model for two coupled spins.
+"""Refactoring to use urls and multiple page views in order to implement
+multiple models.
 """
-
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
 from dash.dependencies import Input, Output
-import plotly.graph_objs as go
-import numpy as np
 
-from dnmrplot import dnmrplot_2spin
-
-# list order reflects left-->right order of widgets in top toolbar
-entry_names = ['va', 'vb', 'ka', 'wa', 'wb', 'pa']
-
-# each Input widget has the following custom kwargs:
-entry_dict = {
-    'va': {'value': 165},
-    'vb': {'value': 135},
-    'ka': {
-        'value': 1.5,
-        'min': 0.01},
-    'wa': {
-        'value': 0.5,
-        'min': 0.01},
-    'wb': {
-        'value': 0.5,
-        'min': 0.01},
-    'pa': {
-        'value': 50,
-        'min': 0,
-        'max': 100}
-}
+from model_definitions import dnmr_two_singlets_kwargs, dnmr_AB_kwargs
+from models_dash import BaseDashModel
 
 app = dash.Dash()
-
 # Demos on the plot.ly Dash site use secret-sauce css:
 app.css.append_css(
     {'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
+dnmr_two_singlets = BaseDashModel(**dnmr_two_singlets_kwargs)
+dnmr_AB = BaseDashModel(**dnmr_AB_kwargs)
+models = (dnmr_two_singlets, dnmr_AB)
+model_dict = {'dnmr-two-singlets': dnmr_two_singlets,
+              'dnmr-AB': dnmr_AB}
+
+# Since we're adding callbacks to elements that don't exist in the app.layout,
+# Dash will raise an exception to warn us that we might be
+# doing something wrong.
+# In this case, we're adding the elements through a callback, so we can ignore
+# the exception.
+app.config.supress_callback_exceptions = True
+
 app.layout = html.Div([
+    # navbar
+    dcc.Location(id='url', refresh=False),
 
-    # top toolbar: list of Label/Input paired widgets
-    html.Div([
-        html.Div([
-            html.Label(key),
-
-            dcc.Input(
-                id=key,
-                type='number',
-                name=key,
-                **entry_dict[key])],
-            style={'display': 'inline-block', 'textAlign': 'center'})
-        for key in entry_names]
+    # Model toggle
+    dcc.RadioItems(
+        id='model-select',
+        options=[{'label': model.name, 'value': model.name} for model in
+                 models],
+        value='dnmr-two-singlets'
     ),
 
-    # The plot
-    dcc.Graph(id='test-dnmr-plot'),  # figure added by callback
-
-    # retaining Pre for debugging purposes
-    html.Pre(id='selected-data',
-             style={
-                'border': 'thin lightgrey solid',
-                'overflowX': 'scroll'
-             })
+    # Model-specific content
+    html.Div(id='page-content')
 ])
 
 
-@app.callback(
-    Output(component_id='test-dnmr-plot', component_property='figure'),
-    [Input(component_id=key, component_property='value') for key in entry_names]
-)
-def update_graph(*input_values):
-    """Update the figure of the Graph whenever an Input value is changed.
+# Update the index
+@app.callback(dash.dependencies.Output('model-select', 'value'),
+              [dash.dependencies.Input('url', 'pathname')])
+def display_page(pathname):
+    """Update the current model name when the url changes.
 
-    :param input_values: (str,) the values of the Input widgets.
-    :return: (dict) the kwargs for the Graph's figure.
+    :return: (str) the name of the selected model
     """
-    # Currently, even when Input type='number', value is a string.
-    # A forum discussion indicated this may change at some point
-    variables = (float(i) for i in input_values)
-    x, y = dnmrplot_2spin(*variables)
-
-    return {
-        # IMPORTANT: despite what some online examples show, apparently
-        # 'data' must be a list, even if only one element. Otherwise, if []
-        # omitted, it won't plot.
-        'data': [go.Scatter(
-            x=x,
-            y=y,
-            text='banana',
-            mode='lines',
-            opacity=0.7,
-            line={'color': 'blue',
-                  'width': 1},
-            name='test'
-        )],
-        'layout': go.Layout(
-            xaxis={'title': 'frequency',
-                   'autorange': 'reversed'},
-            yaxis={'title': 'intensity'},
-            margin={'l': 40, 'b': 40, 't': 10, 'r': 10},
-            legend={'x': 0, 'y': 1},
-            hovermode='closest')
-    }
+    if pathname == '/dnmr-two-singlets':
+        return 'dnmr-two-singlets'
+    elif pathname == '/dnmr-AB':
+        return 'dnmr-AB'
+    else:
+        return 'dnmr-two-singlets'
+    # You could also return a 404 "URL not found" page here
 
 
-# retaining function below temporarily for debugging purposes
-def update_output_div(*input_values):
+@app.callback(Output('page-content', 'children'),
+              [Input('model-select', 'value')])
+def display_page(model_key):
+    """Add the new model's layout to the GUI when a new model is selected.
 
-    # Currently, even when Input type='number', value is a string.
-    # A forum discussion indicated this may change at some point
-    variables = (float(i) for i in input_values)
-    x, y = dnmrplot_2spin(*variables)
-    line1 = 'You\'ve entered "{}"\n'.format(input_values)
-    line2 = 'x = {}...\n'.format(x[:10])
-    line3 = 'y = {}...'.format(y[:10])
-    return line1 + line2 + line3
+    :return: (html.Div)
+    """
+    return model_dict[model_key].layout
+
+
+@app.callback(dnmr_two_singlets.output, dnmr_two_singlets.inputs)
+def update_dnmr_two_singlets(*string_values):
+    """Update the figure for the dnmr_two_singlets Graph.
+
+    :param string_values: (str...)
+    :return: {**kwargs} for the Graph figure
+    """
+    values = (float(i) for i in string_values)
+    return dnmr_two_singlets.update_graph(*values)
+
+
+@app.callback(dnmr_AB.output, dnmr_AB.inputs)
+def update_dnmr_AB(*string_values):
+    """Update the figure for the dnmr_AB Graph.
+
+    :param string_values: (str...)
+    :return: {**kwargs} for the Graph figure
+    """
+    values = (float(i) for i in string_values)
+    return dnmr_AB.update_graph(*values)
 
 
 if __name__ == '__main__':
-    app.run_server()
+    app.run_server(debug=True)
